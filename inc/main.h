@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include "vita/vita.h"
 
+// ditto
+#define CYNC_PROJECT_NAME "cync"
+
 // syncronization schema
 enum CyncSchema {
     CYNC_SCHEMA_MASTER_SLAVE,   // master-slave relationship

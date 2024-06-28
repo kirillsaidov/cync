@@ -1,4 +1,6 @@
 #include "main.h"
+#include "schema.h"
+#include "sync_tools.h"
 
 int main(const int argc, const char *argv[]) {
     // options
@@ -34,11 +36,18 @@ int main(const int argc, const char *argv[]) {
         return 0;
     }
 
-    // now do your thing
-    printf("t1: %s\n", opt_target1);
-    printf("t2: %s\n", opt_target1);
-    printf(" v: %s\n", opt_verbose ? "true" : "false");
-    printf(" s: %d\n", opt_schema);
+    // select syncronization approach and sync data
+    switch (opt_schema) {
+        case CYNC_SCHEMA_MASTER_SLAVE: 
+            cync_schema_master_slave(opt_target1, opt_target2, opt_verbose);
+            break;
+        case CYNC_SCHEMA_DUAL_SYNC:
+        case CYNC_SCHEMA_FULL_SYNC:
+        case CYNC_SCHEMA_LOCAL_NETWORK:
+            printf("[ %s ] Feature unimplemented!\n", CYNC_PROJECT_NAME);
+            break;
+        default: printf("[ %s ] Unknown or unsupported schema!\n", CYNC_PROJECT_NAME);
+    }
 
 cleanup:
     vt_free(opt_target1);
