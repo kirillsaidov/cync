@@ -11,11 +11,11 @@ int main(const int argc, const char *argv[]) {
 
     // setup argopt parser
     vt_argopt_t optv[] = {
-        //  long        short     description               argument                type
-        { "--target1",  "-t1",   "path to target folder 1", VT_ARGOPT(opt_target1), VT_TYPE_CSTR },
-        { "--target2",  "-t2",   "path to target folder 2", VT_ARGOPT(opt_target2), VT_TYPE_CSTR },
-        { "--verbose",  "-v",    "verbose output",          VT_ARGOPT(opt_verbose), VT_TYPE_BOOL },
-        { "--schema",   "-s",    "syncronization schema",   VT_ARGOPT(opt_schema),  VT_TYPE_INT32 },
+        //  long            short     description               argument                    type
+        { "--target1",      "-t1",   "path to target folder 1", VT_ARGOPT(opt_target1),     VT_TYPE_CSTR },
+        { "--target2",      "-t2",   "path to target folder 2", VT_ARGOPT(opt_target2),     VT_TYPE_CSTR },
+        { "--verbose",      "-v",    "verbose output",          VT_ARGOPT(opt_verbose),     VT_TYPE_BOOL },
+        { "--schema",       "-s",    "syncronization schema",   VT_ARGOPT(opt_schema),      VT_TYPE_INT32 },
     };
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
 
@@ -29,11 +29,25 @@ int main(const int argc, const char *argv[]) {
     // display help manual
     if (parse_status == VT_ARGOPT_PARSE_HELP_WANTED) {
         vt_argopt_print_help(
-            "cync v1.0.0 -- syncing files accross directories and devices.",          // header
-            "Example: cync --target1 ~/disk1 --target2 ~/disk2 --schema 0 --verbose", // footer
+            CYNC_PROJECT_HELP_HEADER, // header
+            CYNC_PROJECT_HELP_FOOTER, // footer
             optc, optv
         );
         return 0;
+    }
+
+    // check conditions
+    if (!opt_target1) {
+        printf("[ %s ] Source directory wasn't specified!\n", CYNC_PROJECT_NAME);
+        goto cleanup;
+    }
+    if (!opt_target2) {
+        printf("[ %s ] Destination directory wasn't specified!\n", CYNC_PROJECT_NAME);
+        goto cleanup;
+    }
+    if (opt_schema > 0 && opt_schema < CYNC_SCHEMA_COUNT) {
+        printf("[ %s ] Unknown syncronization schema specified!\n", CYNC_PROJECT_NAME);
+        goto cleanup;
     }
 
     // select syncronization approach and sync data
