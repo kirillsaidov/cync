@@ -2,6 +2,7 @@
 #define CYNC_SCHEMA
 
 #include "main.h"
+#include "log.h"
 
 /**
  * @brief  Master-slave syncronization approach

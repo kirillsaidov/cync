@@ -25,4 +25,7 @@ enum CyncSchema {
     CYNC_SCHEMA_COUNT,          // number of elements
 };
 
+// allocator
+vt_mallocator_t *alloctr;
+
 #endif // CYNC_MAIN

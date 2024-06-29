@@ -1,4 +1,5 @@
 #include "main.h"
+#include "log.h"
 #include "schema.h"
 #include "sync_tools.h"
 
@@ -22,7 +23,7 @@ int main(const int argc, const char *argv[]) {
     // parse args and opts
     const int8_t parse_status = argc > 1 ? vt_argopt_parse(argc, argv, optc, optv, NULL) : VT_ARGOPT_PARSE_HELP_WANTED;
     if (parse_status < 0) {
-        printf("See 'argopt -h' for more info!\n");
+        printf("See 'cync -h' for more info!\n");
         goto cleanup;
     }
 
@@ -38,17 +39,20 @@ int main(const int argc, const char *argv[]) {
 
     // check conditions
     if (!opt_target1) {
-        printf("[ %s ] Source directory wasn't specified!\n", CYNC_PROJECT_NAME);
+        cync_log("Source directory wasn't specified!");
         goto cleanup;
     }
     if (!opt_target2) {
-        printf("[ %s ] Destination directory wasn't specified!\n", CYNC_PROJECT_NAME);
+        cync_log("Destination directory wasn't specified!");
         goto cleanup;
     }
     if (opt_schema > 0 && opt_schema < CYNC_SCHEMA_COUNT) {
-        printf("[ %s ] Unknown syncronization schema specified!\n", CYNC_PROJECT_NAME);
+        cync_log("Unknown syncronization schema specified!");
         goto cleanup;
     }
+
+    // create allocator
+    alloctr = vt_mallocator_create();
 
     // select syncronization approach and sync data
     switch (opt_schema) {
@@ -58,14 +62,15 @@ int main(const int argc, const char *argv[]) {
         case CYNC_SCHEMA_DUAL_SYNC:
         case CYNC_SCHEMA_FULL_SYNC:
         case CYNC_SCHEMA_LOCAL_NETWORK:
-            printf("[ %s ] Feature unimplemented!\n", CYNC_PROJECT_NAME);
+            cync_log("Feature unimplemented!");
             break;
-        default: printf("[ %s ] Unknown or unsupported schema!\n", CYNC_PROJECT_NAME);
+        default: cync_log("Unknown or unsupported schema!");
     }
 
 cleanup:
     vt_free(opt_target1);
     vt_free(opt_target2);
+    vt_mallocator_destroy(alloctr); // FIXME: when alloctr was created but not used it segfaults (nothing to free)
     
     return 0;
 }
