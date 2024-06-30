@@ -8,6 +8,7 @@ int main(const int argc, const char *argv[]) {
     char *opt_target1 = NULL;
     char *opt_target2 = NULL;
     bool opt_verbose = false;
+    bool opt_move_df = false;
     enum CyncSchema opt_schema = CYNC_SCHEMA_MASTER_SLAVE;
 
     // setup argopt parser
@@ -16,6 +17,7 @@ int main(const int argc, const char *argv[]) {
         { "--target1",      "-t1",   "path to target folder 1", VT_ARGOPT(opt_target1),     VT_TYPE_CSTR },
         { "--target2",      "-t2",   "path to target folder 2", VT_ARGOPT(opt_target2),     VT_TYPE_CSTR },
         { "--verbose",      "-v",    "verbose output",          VT_ARGOPT(opt_verbose),     VT_TYPE_BOOL },
+        { "--move_df",      "-m",    "move dot files",          VT_ARGOPT(opt_move_df),     VT_TYPE_BOOL },
         { "--schema",       "-s",    "syncronization schema",   VT_ARGOPT(opt_schema),      VT_TYPE_INT32 },
     };
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
@@ -51,13 +53,10 @@ int main(const int argc, const char *argv[]) {
         goto cleanup;
     }
 
-    // create allocator
-    alloctr = vt_mallocator_create();
-
     // select syncronization approach and sync data
     switch (opt_schema) {
         case CYNC_SCHEMA_MASTER_SLAVE: 
-            cync_schema_master_slave(opt_target1, opt_target2, opt_verbose);
+            cync_schema_master_slave(opt_target1, opt_target2, !opt_move_df, opt_verbose);
             break;
         case CYNC_SCHEMA_DUAL_SYNC:
         case CYNC_SCHEMA_FULL_SYNC:
@@ -70,8 +69,7 @@ int main(const int argc, const char *argv[]) {
 cleanup:
     vt_free(opt_target1);
     vt_free(opt_target2);
-    vt_mallocator_destroy(alloctr); // FIXME: when alloctr was created but not used it segfaults (nothing to free)
-    
+
     return 0;
 }
 
