@@ -3,6 +3,21 @@
 
 #include "main.h"
 
-void cync_log(const char *const msg);
+/**
+ * @brief  Log text to stdout
+ * @note   
+ * @param  *format: format or text
+ * @retval None
+ */
+void cync_log(const char *format, ...);
+
+/**
+ * @brief  Log text to stdout with new line appended at the end
+ * @note   
+ * @param  *format: format or text
+ * @retval None
+ */
+void cync_log_ln(const char *format, ...);
 
 #endif // CYNC_LOG
+

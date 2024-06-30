@@ -10,7 +10,8 @@ project(
 
 # setting default build type
 set(CMAKE_C_STANDARD 11)
-set(default_buid_type "Debug")
+set(default_buid_type "Release")
+set(CMAKE_C_FLAGS "-DNDEBUG -Wall -Wpedantic -Wextra -Wreturn-type -Wswitch -Wunused -Werror -O2")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 # finding all headers and sources
