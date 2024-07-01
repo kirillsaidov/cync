@@ -41,15 +41,15 @@ int main(const int argc, const char *argv[]) {
 
     // check conditions
     if (!opt_target1) {
-        cync_log("Source directory wasn't specified!");
+        cync_log_ln("Source directory wasn't specified!");
         goto cleanup;
     }
     if (!opt_target2) {
-        cync_log("Destination directory wasn't specified!");
+        cync_log_ln("Destination directory wasn't specified!");
         goto cleanup;
     }
-    if (opt_schema > 0 && opt_schema < CYNC_SCHEMA_COUNT) {
-        cync_log("Unknown syncronization schema specified!");
+    if (!(opt_schema >= 0 && opt_schema < CYNC_SCHEMA_COUNT)) {
+        cync_log_ln("Unknown syncronization schema specified!");
         goto cleanup;
     }
 
@@ -61,9 +61,9 @@ int main(const int argc, const char *argv[]) {
         case CYNC_SCHEMA_DUAL_SYNC:
         case CYNC_SCHEMA_FULL_SYNC:
         case CYNC_SCHEMA_LOCAL_NETWORK:
-            cync_log("Feature unimplemented!");
+            cync_log_ln("Feature unimplemented!");
             break;
-        default: cync_log("Unknown or unsupported schema!");
+        default:;
     }
 
 cleanup:

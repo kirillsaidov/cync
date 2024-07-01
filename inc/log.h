@@ -9,7 +9,7 @@
  * @param  *format: format or text
  * @retval None
  */
-void cync_log(const char *format, ...);
+extern void cync_log(const char *format, ...);
 
 /**
  * @brief  Log text to stdout with new line appended at the end
@@ -17,7 +17,7 @@ void cync_log(const char *format, ...);
  * @param  *format: format or text
  * @retval None
  */
-void cync_log_ln(const char *format, ...);
+extern void cync_log_ln(const char *format, ...);
 
 #endif // CYNC_LOG
 

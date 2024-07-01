@@ -10,7 +10,7 @@
 #define CYNC_PROJECT_VERSION "v1.0.0"
 #define CYNC_PROJECT_HELP_HEADER "cync " CYNC_PROJECT_VERSION " -- syncing files accross directories and devices."
 #define CYNC_PROJECT_HELP_FOOTER "OPTIONS:\n\
-\t--schema=0  master-slave syncronization\n\
+\t--schema=0  master-slave syncronization (default)\n\
 \t--schema=1  sync both targets, but don't delete items\n\
 \t--schema=2  sync both targets completely\n\
 EXAMPLE:\n\tcync --target1 ~/disk1 --target2 ~/disk2 --schema 0 --verbose\
