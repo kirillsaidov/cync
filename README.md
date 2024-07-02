@@ -7,7 +7,7 @@ Syncing files accross directories and devices.
 
 ## Usage
 ```
-cync v1.0.0 -- syncing files accross directories and devices.
+cync v1.0.1 -- syncing files accross directories and devices.
 -t1 --target1 path to target folder 1
 -t2 --target2 path to target folder 2
  -v --verbose verbose output

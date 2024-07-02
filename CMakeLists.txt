@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 # project name init
 project(
     cync
-    VERSION 1.0
+    VERSION 1.0.1
     DESCRIPTION "Syncing files accross directories and devices."
     LANGUAGES C
 )
