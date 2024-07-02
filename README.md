@@ -28,12 +28,30 @@ EXAMPLE:
 * CMake
 
 ### Install from source
+#### Clone
 ```sh
 git clone --recurse-submodules https://github.com/kirillsaidov/cync.git
 cd cync/
+```
+
+#### Configure
+Modify the build type in `third_party/vita/CMakeLists.txt`:
+```sh
+# COMMENT OUT
+# set(DEFAULT_BUILD_TYPE "Debug")
+# set(CMAKE_C_FLAGS "-Wall -Wpedantic -Wextra -Wreturn-type -Wswitch -Wunused -Werror -O2")
+
+# UNCOMMENT
+set(DEFAULT_BUILD_TYPE "Release")
+set(CMAKE_C_FLAGS "-DNDEBUG -Wall -Wpedantic -Wextra -Wreturn-type -Wswitch -Wunused -Werror -O2")
+```
+
+#### Build
+```sh
 ./build.sh  # linux, macos
 ./build.bat # windows
 ```
+You will find the executable inside the `bin/` folder. 
 
 ## LICENSE
 All code is licensed under the MIT license.
