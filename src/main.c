@@ -3,6 +3,12 @@
 #include "schema.h"
 #include "sync_tools.h"
 
+/**
+ * TODO:
+ *  1. Update README: vita/CMAkeLists.txt => debug-->release
+ *  2. FIXME: --schema=0 does not remove files.
+ */
+
 int main(const int argc, const char *argv[]) {
     // options
     char *opt_target1 = NULL;

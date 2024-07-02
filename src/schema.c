@@ -44,15 +44,15 @@ void cync_schema_master_slave(const char *const master, const char *const slave,
 
     // sync files
     path = NULL;
+    vt_str_t *basename = vt_str_create_len(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
     while ((path = vt_plist_slide_front(dir_master)) != NULL) {
-        // get cast to vt_str_t
+        // cast to vt_str_t
         vt_str_t *item = path;
 
         // skip directories
         if (vt_path_is_dir(vt_str_z(item))) continue;
         
         // get file basename
-        vt_str_t *basename = vt_str_create_len(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
         basename = vt_path_basename(basename, vt_str_z(item));
         
         // create slave file and modify to fit slave directory tree
@@ -72,13 +72,29 @@ void cync_schema_master_slave(const char *const master, const char *const slave,
                 if (verbose) cync_log_ln("UPDATE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(slave_file));
             }
         } else {
-            // skip if file exists
-            if (vt_path_exists(vt_str_z(slave_file))) continue;
-
             // copy file
             if (verbose) cync_log_ln("COPY <%s>", vt_str_z(item));
             const bool ret = cync_copy_file(vt_str_z(item), vt_str_z(slave_file));
             if (verbose) cync_log_ln("(%s) <%s>", ret ? "OK" : "ER", vt_str_z(slave_file));
+        }
+    }
+
+    // delete unneccessary files
+    path = NULL;
+    while ((path = vt_plist_slide_front(dir_slave)) != NULL) {
+        // cast to vt_str_t
+        vt_str_t *item = path;
+
+        // get file basename
+        basename = vt_path_basename(basename, vt_str_z(item));
+        
+        // check if item exists in master
+        if (!cync_find_str_in_list(basename, dir_master, 2)) {            
+            // delete file or directory
+            const bool ret = vt_path_is_dir(vt_str_z(item)) ? 
+                vt_path_rmdir(vt_str_z(item)) : 
+                vt_path_remove(vt_str_z(item));
+            if (verbose) cync_log_ln("REMOVE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(item));
         }
     }
 
