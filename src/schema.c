@@ -1,6 +1,6 @@
 #include "schema.h"
 
-void cync_schema_master_slave(const char *const master, const char *const slave, const bool ignore_df, const bool verbose) {
+void cync_schema_master_slave(const char *const master, const char *const slave, const bool ignore_df, const bool low_mem, const bool verbose) {
     if (verbose) cync_log_ln("Starting syncronization process...");
 
     // create alloctor
@@ -68,13 +68,13 @@ void cync_schema_master_slave(const char *const master, const char *const slave,
             // copy if needed
             if (modiftime_master > modiftime_slave) {
                 // copy file
-                const bool ret = cync_copy_file(vt_str_z(item), vt_str_z(slave_file));
+                const bool ret = cync_copy_file(vt_str_z(item), vt_str_z(slave_file), low_mem);
                 if (verbose) cync_log_ln("UPDATE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(slave_file));
             }
         } else {
             // copy file
             if (verbose) cync_log_ln("COPY <%s>", vt_str_z(item));
-            const bool ret = cync_copy_file(vt_str_z(item), vt_str_z(slave_file));
+            const bool ret = cync_copy_file(vt_str_z(item), vt_str_z(slave_file), low_mem);
             if (verbose) cync_log_ln("(%s) <%s>", ret ? "OK" : "ER", vt_str_z(slave_file));
         }
     }

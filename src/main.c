@@ -3,18 +3,13 @@
 #include "schema.h"
 #include "sync_tools.h"
 
-/**
- * TODO:
- *  1. Update README: vita/CMAkeLists.txt => debug-->release
- *  2. FIXME: --schema=0 does not remove files.
- */
-
 int main(const int argc, const char *argv[]) {
     // options
     char *opt_target1 = NULL;
     char *opt_target2 = NULL;
     bool opt_verbose = false;
     bool opt_move_df = false;
+    bool opt_low_mem = false;
     enum CyncSchema opt_schema = CYNC_SCHEMA_MASTER_SLAVE;
 
     // setup argopt parser
@@ -24,6 +19,7 @@ int main(const int argc, const char *argv[]) {
         { "--target2",      "-t2",   "path to target folder 2", VT_ARGOPT(opt_target2),     VT_TYPE_CSTR },
         { "--verbose",      "-v",    "verbose output",          VT_ARGOPT(opt_verbose),     VT_TYPE_BOOL },
         { "--move_df",      "-m",    "move dot files",          VT_ARGOPT(opt_move_df),     VT_TYPE_BOOL },
+        { "--low_mem",      "-l",    "use less memory",         VT_ARGOPT(opt_low_mem),     VT_TYPE_BOOL },
         { "--schema",       "-s",    "syncronization schema",   VT_ARGOPT(opt_schema),      VT_TYPE_INT32 },
     };
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
@@ -62,7 +58,7 @@ int main(const int argc, const char *argv[]) {
     // select syncronization approach and sync data
     switch (opt_schema) {
         case CYNC_SCHEMA_MASTER_SLAVE: 
-            cync_schema_master_slave(opt_target1, opt_target2, !opt_move_df, opt_verbose);
+            cync_schema_master_slave(opt_target1, opt_target2, !opt_move_df, opt_low_mem, opt_verbose);
             break;
         case CYNC_SCHEMA_DUAL_SYNC:
         case CYNC_SCHEMA_FULL_SYNC:

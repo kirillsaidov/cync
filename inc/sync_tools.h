@@ -6,7 +6,10 @@
 
 // copy buffer size
 #define CYNC_ONE_KB 1024
-#define CYNC_ONE_MB CYNC_ONE_KB * CYNC_ONE_KB
+#define CYNC_ONE_MB (CYNC_ONE_KB * CYNC_ONE_KB)
+#define CYNC_COPY_SIZE_LOW_MEM (CYNC_ONE_MB * 1)
+#define CYNC_COPY_SIZE_DEFAULT (CYNC_ONE_MB * 10)
+#define CYNC_COPY_SIZE_LARGE (CYNC_ONE_MB * 100)
 
 /**
  * @brief  Find string in list
@@ -23,9 +26,10 @@ extern bool cync_find_str_in_list(const vt_str_t *const s, vt_plist_t *const lis
  * @note   
  * @param  src: src filepath
  * @param  dst: dst filepath
+ * @param  low_mem: use less memory
  * @retval true if copy success else false
  */
-extern bool cync_copy_file(const char *const src, const char *const dst);
+extern bool cync_copy_file(const char *const src, const char *const dst, const bool low_mem);
 
 /**
  * @brief  Filter all directories

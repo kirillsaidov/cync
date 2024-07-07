@@ -23,7 +23,7 @@ bool cync_find_str_in_list(const vt_str_t *const s, vt_plist_t *const list, cons
     return false;
 }
 
-bool cync_copy_file(const char *const src, const char *const dst) {
+bool cync_copy_file(const char *const src, const char *const dst, const bool low_mem) {
     VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
     VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
 
@@ -37,7 +37,11 @@ bool cync_copy_file(const char *const src, const char *const dst) {
     if (filesize) {
         // copy the contents from source to destination
         size_t bytesRead = 0;
-        const size_t buffer_size = filesize < CYNC_ONE_MB * 100 ? CYNC_ONE_MB * 10 : CYNC_ONE_MB * 100;
+        const size_t buffer_size = low_mem ? 
+            CYNC_COPY_SIZE_LOW_MEM : 
+            filesize < CYNC_COPY_SIZE_LARGE ?
+            CYNC_COPY_SIZE_DEFAULT : 
+            CYNC_COPY_SIZE_LARGE;
         char *buffer = VT_CALLOC(buffer_size);
         while ((bytesRead = fread(buffer, 1, buffer_size, src_file)) > 0) {
             if (fwrite(buffer, 1, bytesRead, dst_file) != bytesRead) {
