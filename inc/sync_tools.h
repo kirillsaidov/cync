@@ -6,7 +6,7 @@
 
 // copy buffer size
 #define CYNC_ONE_KB 1024
-#define CYNC_ONE_MB CYNC_ONE_KB * 1000
+#define CYNC_ONE_MB CYNC_ONE_KB * CYNC_ONE_KB
 
 /**
  * @brief  Find string in list
