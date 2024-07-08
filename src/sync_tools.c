@@ -8,13 +8,11 @@ bool cync_find_str_in_list(const vt_str_t *const s, vt_plist_t *const list, cons
     void *path = NULL;
     while ((path = vt_plist_slide_front(list)) != NULL) {
         vt_str_t *item = path;
-        if (method == 0 && vt_str_equals(s, item)) {
-            vt_plist_slide_reset(list);
-            return true;
-        } else if (method == 1 && vt_str_can_find(item, vt_str_z(s))) {
-            vt_plist_slide_reset(list);
-            return true;
-        } else if (vt_str_ends_with(item, vt_str_z(s))) {
+        if (
+            (method == 0 && vt_str_equals(s, item)) ||
+            (method == 1 && vt_str_can_find(item, vt_str_z(s))) ||
+            (vt_str_ends_with(item, vt_str_z(s)))
+        ) {
             vt_plist_slide_reset(list);
             return true;
         }
