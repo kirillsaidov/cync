@@ -1,4 +1,4 @@
-#include "sync_tools.h"
+#include "tools.h"
 
 bool cync_find_str_in_list(const vt_str_t *const s, vt_plist_t *const list, const int method) {
     VT_DEBUG_ASSERT(s != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));

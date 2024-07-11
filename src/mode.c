@@ -1,4 +1,4 @@
-#include "schema.h"
+#include "mode.h"
 
 void cync_schema_master_slave(const char *const master, const char *const slave, const bool ignore_df, const bool low_mem, const bool verbose) {
     if (verbose) cync_log_ln("Starting syncronization process...");

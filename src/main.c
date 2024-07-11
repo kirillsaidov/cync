@@ -1,33 +1,43 @@
 #include "main.h"
 #include "log.h"
-#include "schema.h"
-#include "sync_tools.h"
+#include "mode.h"
+#include "tools.h"
+
+vt_mallocator_t *alloctr = NULL;
 
 int main(const int argc, const char *argv[]) {
-    // options
-    char *opt_target1 = NULL;
-    char *opt_target2 = NULL;
+    if (argc < 2) {
+        cync_log_ln("No commands specified! See '-h' for more information.");
+        return 0;
+    }
+
+    // create allocator
+    alloctr = vt_mallocator_create();
+
+    // define options
+    char *opt_src = NULL;
+    char *opt_dst = NULL;
     bool opt_verbose = false;
-    bool opt_move_df = false;
     bool opt_low_mem = false;
-    enum CyncSchema opt_schema = CYNC_SCHEMA_MASTER_SLAVE;
+    bool opt_ignore_df = false;
+    enum CyncMode opt_mode = CYNC_MODE_TARGET;
 
     // setup argopt parser
     vt_argopt_t optv[] = {
-        //  long            short     description               argument                    type
-        { "--target1",      "-t1",   "path to target folder 1", VT_ARGOPT(opt_target1),     VT_TYPE_CSTR },
-        { "--target2",      "-t2",   "path to target folder 2", VT_ARGOPT(opt_target2),     VT_TYPE_CSTR },
-        { "--verbose",      "-v",    "verbose output",          VT_ARGOPT(opt_verbose),     VT_TYPE_BOOL },
-        { "--move_df",      "-m",    "move dot files",          VT_ARGOPT(opt_move_df),     VT_TYPE_BOOL },
-        { "--low_mem",      "-l",    "use less memory",         VT_ARGOPT(opt_low_mem),     VT_TYPE_BOOL },
-        { "--schema",       "-s",    "syncronization schema",   VT_ARGOPT(opt_schema),      VT_TYPE_INT32 },
+        //  long            short     description               argument                     type
+        { "--src",          "-s",   "path to target folder 1", VT_ARGOPT(opt_src),          VT_TYPE_CSTR },
+        { "--dst",          "-d",   "path to target folder 2", VT_ARGOPT(opt_dst),          VT_TYPE_CSTR },
+        { "--verbose",      "-v",   "verbose output",          VT_ARGOPT(opt_verbose),      VT_TYPE_BOOL },
+        { "--ignore_df",    "-i",   "ignore dot files",        VT_ARGOPT(opt_ignore_df),    VT_TYPE_BOOL },
+        { "--low_mem",      "-l",   "use less memory",         VT_ARGOPT(opt_low_mem),      VT_TYPE_BOOL },
+        { "--mode",         "-m",   "syncronization mode",     VT_ARGOPT(opt_mode),         VT_TYPE_INT32 },
     };
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
 
     // parse args and opts
-    const int8_t parse_status = argc > 1 ? vt_argopt_parse(argc, argv, optc, optv, NULL) : VT_ARGOPT_PARSE_HELP_WANTED;
+    const int8_t parse_status = vt_argopt_parse(argc, argv, optc, optv, alloctr);
     if (parse_status < 0) {
-        printf("See 'cync -h' for more info!\n");
+        cync_log_ln("See '-h' for more information!");
         goto cleanup;
     }
 
@@ -42,35 +52,34 @@ int main(const int argc, const char *argv[]) {
     }
 
     // check conditions
-    if (!opt_target1) {
+    if (!opt_src) {
         cync_log_ln("Source directory wasn't specified!");
         goto cleanup;
     }
-    if (!opt_target2) {
+    if (!opt_dst) {
         cync_log_ln("Destination directory wasn't specified!");
         goto cleanup;
     }
-    if (!(opt_schema >= 0 && opt_schema < CYNC_SCHEMA_COUNT)) {
-        cync_log_ln("Unknown syncronization schema specified!");
+    if (!(opt_mode >= 0 && opt_mode < CYNC_MODE_COUNT)) {
+        cync_log_ln("Unknown syncronization mode <%d> specified!", opt_mode);
         goto cleanup;
     }
 
     // select syncronization approach and sync data
-    switch (opt_schema) {
-        case CYNC_SCHEMA_MASTER_SLAVE: 
-            cync_schema_master_slave(opt_target1, opt_target2, !opt_move_df, opt_low_mem, opt_verbose);
+    switch (opt_mode) {
+        case CYNC_MODE_TARGET: 
+            // cync_schema_master_slave(opt_src, opt_dst, opt_ignore_df, opt_low_mem, opt_verbose);
             break;
-        case CYNC_SCHEMA_DUAL_SYNC:
-        case CYNC_SCHEMA_FULL_SYNC:
-        case CYNC_SCHEMA_LOCAL_NETWORK:
+        case CYNC_MODE_DUAL: 
+        case CYNC_MODE_AUTO:
+        case CYNC_MODE_NET:
             cync_log_ln("Feature unimplemented!");
             break;
         default:;
     }
 
 cleanup:
-    vt_free(opt_target1);
-    vt_free(opt_target2);
+    vt_mallocator_destroy(alloctr);
 
     return 0;
 }
