@@ -25,12 +25,12 @@ int main(const int argc, const char *argv[]) {
     // setup argopt parser
     vt_argopt_t optv[] = {
         //  long            short     description               argument                     type
-        { "--src",          "-s",   "path to target folder 1", VT_ARGOPT(opt_src),          VT_TYPE_CSTR },
-        { "--dst",          "-d",   "path to target folder 2", VT_ARGOPT(opt_dst),          VT_TYPE_CSTR },
-        { "--verbose",      "-v",   "verbose output",          VT_ARGOPT(opt_verbose),      VT_TYPE_BOOL },
-        { "--ignore_df",    "-i",   "ignore dot files",        VT_ARGOPT(opt_ignore_df),    VT_TYPE_BOOL },
-        { "--low_mem",      "-l",   "use less memory",         VT_ARGOPT(opt_low_mem),      VT_TYPE_BOOL },
-        { "--mode",         "-m",   "syncronization mode",     VT_ARGOPT(opt_mode),         VT_TYPE_INT32 },
+        { "--src",          "-s",   "source directory",         VT_ARGOPT(opt_src),          VT_TYPE_CSTR },
+        { "--dst",          "-d",   "destination directory",    VT_ARGOPT(opt_dst),          VT_TYPE_CSTR },
+        { "--verbose",      "-v",   "verbose output",           VT_ARGOPT(opt_verbose),      VT_TYPE_BOOL },
+        { "--ignore_df",    "-i",   "ignore dot files",         VT_ARGOPT(opt_ignore_df),    VT_TYPE_BOOL },
+        { "--low_mem",      "-l",   "use less memory",          VT_ARGOPT(opt_low_mem),      VT_TYPE_BOOL },
+        { "--mode",         "-m",   "syncronization mode",      VT_ARGOPT(opt_mode),         VT_TYPE_INT32 },
     };
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
 
