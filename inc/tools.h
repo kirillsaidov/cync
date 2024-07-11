@@ -53,8 +53,8 @@ extern void cync_tools_create_dirtree(const char *const src, const char *const d
 /**
  * @brief  Copy or update files in the destination directory
  * @note   
- * @param  src: source directory where the dir tree is copied from
- * @param  dst: destination directory where the dir tree is created based on source
+ * @param  src: source directory where files are taken from
+ * @param  dst: destination directory where files are copied to
  * @param  verbose: verbose output
  * @param  low_mem: use less memory
  * @param  ignore_df: ignore dot files
@@ -66,14 +66,26 @@ extern void cync_tools_copy_update_files(const char *const src, const char *cons
 /**
  * @brief  Remove files from destination directory if they are not present in the source directory
  * @note   
- * @param  src: source directory where the dir tree is copied from
- * @param  dst: destination directory where the dir tree is created based on source
+ * @param  src: source directory where files are compared to destination
+ * @param  dst: destination directory where files are removed if absent from source
  * @param  verbose: verbose output
  * @param  ignore_df: ignore dot files
  * @param  alloctr: alloctr or NULL to use vt_calloc/vt_free
  * @return None
  */
 extern void cync_tools_remove_files(const char *const src, const char *const dst, const bool ignore_df, const bool verbose, vt_mallocator_t *const alloctr);
+
+/**
+ * @brief  Remove directory tree from destination if it is not present in the source directory
+ * @note   
+ * @param  src: source directory where the dir tree is compared to destination
+ * @param  dst: destination directory where the dir tree is removed if absent from source
+ * @param  verbose: verbose output
+ * @param  ignore_df: ignore dot files
+ * @param  alloctr: alloctr or NULL to use vt_calloc/vt_free
+ * @return None
+ */
+extern void cync_tools_remove_dirtree(const char *const src, const char *const dst, const bool ignore_df, const bool verbose, vt_mallocator_t *const alloctr);
 
 #endif // CYNC_TOOLS
 

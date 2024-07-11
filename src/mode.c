@@ -14,7 +14,7 @@ void cync_mode_target(const char *const src, const char *const dst, const bool i
     cync_tools_remove_files(src, dst, ignore_df, verbose, alloctr);
 
     // remove directory tree from dst if absent from src
-    //
+    cync_tools_remove_dirtree(src, dst, ignore_df, verbose, alloctr);
 }
 
 /*

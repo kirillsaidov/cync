@@ -195,6 +195,39 @@ void cync_tools_remove_files(const char *const src, const char *const dst, const
     }
 }
 
+void cync_tools_remove_dirtree(const char *const src, const char *const dst, const bool ignore_df, const bool verbose, vt_mallocator_t *const alloctr) {
+    VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+
+    // setup
+    vt_plist_t *dst_contents = vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+
+    // get directory contents
+    dst_contents = vt_path_dir_list_recurse(dst_contents, dst, ignore_df);
+
+    // filter for files
+    vt_plist_t *dst_dirs = cync_tools_filter_list(dst_contents, cync_tools_filter_is_dir, alloctr); 
+
+    // iterate over src directory and create dirtree in destination
+    void *item = NULL;
+    vt_str_t *src_dir = vt_str_create_capacity(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+    while ((item = vt_plist_slide_front(dst_dirs)) != NULL) {
+        // cast to vt_str_t
+        vt_str_t *dst_dir = item;
+
+        // create dst path from src path
+        vt_str_clear(src_dir);
+        vt_str_append(src_dir, vt_str_z(dst_dir));
+        vt_str_replace_first(src_dir, dst, src);
+
+        // check if file exists in source directory, otherwise remove it from destination directory
+        if (!vt_path_exists(vt_str_z(src_dir))) {
+            const bool ret = vt_path_rmdir(vt_str_z(dst_dir));
+            if (verbose) cync_log_ln("RMDIR(%s) <%s>", ret ? "OK" : "ER", vt_str_z(dst_dir));
+        }
+    }
+}
+
 /* -------------------- PRIVATE -------------------- */
 
 /// @brief Check if path is a directory
