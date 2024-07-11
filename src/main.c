@@ -60,15 +60,28 @@ int main(const int argc, const char *argv[]) {
         cync_log_ln("Destination directory wasn't specified!");
         goto cleanup;
     }
+    if (!vt_path_exists(opt_src)) {
+        cync_log_ln("Source directory does not exist <%s>!", opt_src);
+        goto cleanup;
+    }
+    if (!vt_path_exists(opt_dst)) {
+        cync_log_ln("Destination directory does not exist <%s>!", opt_dst);
+        goto cleanup;
+    }
+    if (vt_str_equals_z(opt_src, opt_dst)) {
+        cync_log_ln("Source and destination directories cannot be the same!");
+        goto cleanup;
+    }
     if (!(opt_mode >= 0 && opt_mode < CYNC_MODE_COUNT)) {
         cync_log_ln("Unknown syncronization mode <%d> specified!", opt_mode);
         goto cleanup;
     }
 
     // select syncronization approach and sync data
+    if (opt_verbose) cync_log_ln("Starting syncronization process...");
     switch (opt_mode) {
         case CYNC_MODE_TARGET: 
-            // cync_schema_master_slave(opt_src, opt_dst, opt_ignore_df, opt_low_mem, opt_verbose);
+            cync_mode_target(opt_src, opt_dst, opt_ignore_df, opt_low_mem, opt_verbose);
             break;
         case CYNC_MODE_DUAL: 
         case CYNC_MODE_AUTO:
@@ -77,6 +90,7 @@ int main(const int argc, const char *argv[]) {
             break;
         default:;
     }
+    if (opt_verbose) cync_log_ln("All files up-to-date.");
 
 cleanup:
     vt_mallocator_destroy(alloctr);

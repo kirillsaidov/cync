@@ -1,29 +1,35 @@
 #include "tools.h"
 
-bool cync_find_str_in_list(const vt_str_t *const s, vt_plist_t *const list, const int method) {
-    VT_DEBUG_ASSERT(s != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+static bool cync_tools_filter_is_dir(void *spath);
+static bool cync_tools_filter_is_file(void *spath);
+
+vt_plist_t *cync_tools_filter_list(vt_plist_t *const list, bool (*filter)(void*), vt_mallocator_t *const alloctr) {
     VT_DEBUG_ASSERT(list != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_DEBUG_ASSERT(filter != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+
+    // create filtered list
+    vt_plist_t *filtered_list = NULL;
 
     // iterate over list and find str
-    void *path = NULL;
-    while ((path = vt_plist_slide_front(list)) != NULL) {
-        vt_str_t *item = path;
-        if (
-            (method == 0 && vt_str_equals(s, item)) ||
-            (method == 1 && vt_str_can_find(item, vt_str_z(s))) ||
-            (vt_str_ends_with(item, vt_str_z(s)))
-        ) {
-            vt_plist_slide_reset(list);
-            return true;
-        }
-    } 
+    void *item = NULL;
+    while ((item = vt_plist_slide_front(list)) != NULL) {
+        if (filter(item)) {
+            // allocate if necessary
+            filtered_list = filtered_list ? filtered_list : vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
 
-    return false;
+            // append to new list
+            vt_plist_push_back(filtered_list, item);
+        }
+    }
+
+    return filtered_list;
 }
 
-bool cync_copy_file(const char *const src, const char *const dst, const bool low_mem) {
+bool cync_tools_copy_file(const char *const src, const char *const dst, const bool low_mem) {
     VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
     VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_ENFORCE(!vt_str_equals_z(src, dst), "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_ENFORCE(vt_path_exists(src), "File does not exist: %s!\n", src);
 
     // open read/write file
     FILE *src_file = fopen(src, "rb");
@@ -64,33 +70,145 @@ bool cync_copy_file(const char *const src, const char *const dst, const bool low
     return success;
 }
 
-vt_plist_t *cync_filter_dirs(vt_plist_t *const list) {
-    VT_DEBUG_ASSERT(list != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
-
-    // create directory list
-    vt_plist_t *dirlist = vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, list->alloctr);
-
-    void *path = NULL;
-    while ((path = vt_plist_slide_front(list)) != NULL) {
-        vt_str_t *item = path;
-        if (vt_path_is_dir(vt_str_z(item))) vt_plist_push_back(dirlist, vt_str_dup(item));
-    } 
-
-    return dirlist;
-}
-
-time_t cync_file_time_modified(const char *const filepath) {
-    struct stat file_stat;
+time_t cync_tools_get_filetime_modified(const char *const filepath) {
+    VT_DEBUG_ASSERT(filepath != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_ENFORCE(vt_path_exists(filepath), "File does not exist: %s!\n", filepath);
 
     // get file statistics
+    struct stat file_stat;
     #if defined(_WIN32) || defined(_WIN64)
         if (_stat(filepath, &file_stat) != 0) return 0;
     #else
         if (stat(filepath, &file_stat) != 0) return 0;
     #endif
 
-    // Return the modification time
+    // return the modification time
     return file_stat.st_mtime;
+}
+
+void cync_tools_create_dirtree(const char *const src, const char *const dst, const bool ignore_df, const bool verbose, vt_mallocator_t *const alloctr) {
+    VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+
+    // setup
+    vt_plist_t *src_contents = vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+
+    // get directory contents
+    src_contents = vt_path_dir_list_recurse(src_contents, src, ignore_df);
+
+    // filter for directories
+    vt_plist_t *src_dirs = cync_tools_filter_list(src_contents, cync_tools_filter_is_dir, alloctr); 
+
+    // iterate over src directory and create dirtree in destination
+    void *item = NULL;
+    while ((item = vt_plist_slide_front(src_dirs)) != NULL) {
+        // cast to vt_str_t
+        vt_str_t *spath = item;
+
+        // replace with src path with dst path
+        vt_str_replace_first(spath, src, dst);
+
+        // check if dst directory exists, create otherwise
+        if (!vt_path_exists(vt_str_z(spath))) {
+            const bool ret = vt_path_mkdir_parents(vt_str_z(spath));
+            if (verbose) cync_log_ln("MKDIR(%s) <%s>", ret ? "OK" : "ER", vt_str_z(spath));
+        }
+    }
+}
+
+void cync_tools_copy_update_files(const char *const src, const char *const dst, const bool ignore_df, const bool low_mem, const bool verbose, vt_mallocator_t *const alloctr) {
+    VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+
+    // setup
+    vt_plist_t *src_contents = vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+
+    // get directory contents
+    src_contents = vt_path_dir_list_recurse(src_contents, src, ignore_df);
+
+    // filter for files
+    vt_plist_t *src_files = cync_tools_filter_list(src_contents, cync_tools_filter_is_file, alloctr); 
+
+    // iterate over src directory and create dirtree in destination
+    void *item = NULL;
+    vt_str_t *dst_file = vt_str_create_capacity(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+    while ((item = vt_plist_slide_front(src_files)) != NULL) {
+        // cast to vt_str_t
+        vt_str_t *src_file = item;
+
+        // create dst path from src path
+        vt_str_clear(dst_file);
+        vt_str_append(dst_file, vt_str_z(src_file));
+        vt_str_replace_first(dst_file, src, dst);
+
+        // check if dst file exists, copy otherwise
+        if (!vt_path_exists(vt_str_z(dst_file))) {
+            const bool ret = cync_tools_copy_file(vt_str_z(src_file), vt_str_z(dst_file), low_mem);
+            if (verbose) {
+                cync_log_ln("COPY <%s>", vt_str_z(src_file));
+                cync_log_ln("(%s) <%s>", ret ? "OK" : "ER", vt_str_z(dst_file));
+            }
+        } else { // update file
+            // get modification dates
+            const time_t src_mtime = cync_tools_get_filetime_modified(vt_str_z(src_file));
+            const time_t dst_mtime = cync_tools_get_filetime_modified(vt_str_z(dst_file));
+
+            // check if we need to update the file
+            if (src_mtime > dst_mtime) {
+                const bool ret = cync_tools_copy_file(vt_str_z(src_file), vt_str_z(dst_file), low_mem);
+                if (verbose) cync_log_ln("UPDATE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(dst_file));
+            }
+        }
+    }
+}
+
+void cync_tools_remove_files(const char *const src, const char *const dst, const bool ignore_df, const bool verbose, vt_mallocator_t *const alloctr) {
+    VT_DEBUG_ASSERT(src != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+    VT_DEBUG_ASSERT(dst != NULL, "%s\n", vt_status_to_str(VT_STATUS_ERROR_INVALID_ARGUMENTS));
+
+    // setup
+    vt_plist_t *dst_contents = vt_plist_create(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+
+    // get directory contents
+    dst_contents = vt_path_dir_list_recurse(dst_contents, dst, ignore_df);
+
+    // filter for files
+    vt_plist_t *dst_files = cync_tools_filter_list(dst_contents, cync_tools_filter_is_file, alloctr); 
+
+    // iterate over src directory and create dirtree in destination
+    void *item = NULL;
+    vt_str_t *src_file = vt_str_create_capacity(VT_ARRAY_DEFAULT_INIT_ELEMENTS, alloctr);
+    while ((item = vt_plist_slide_front(dst_files)) != NULL) {
+        // cast to vt_str_t
+        vt_str_t *dst_file = item;
+
+        // create dst path from src path
+        vt_str_clear(src_file);
+        vt_str_append(src_file, vt_str_z(dst_file));
+        vt_str_replace_first(src_file, dst, src);
+
+        // check if file exists in source directory, otherwise remove it from destination directory
+        if (!vt_path_exists(vt_str_z(src_file))) {
+            const bool ret = vt_path_remove(vt_str_z(dst_file));
+            if (verbose) cync_log_ln("REMOVE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(dst_file));
+        }
+    }
+}
+
+/* -------------------- PRIVATE -------------------- */
+
+/// @brief Check if path is a directory
+/// @param spath vt_str_t path or directory
+/// @return true if is directory
+static bool cync_tools_filter_is_dir(void *spath) {
+    return vt_path_is_dir(vt_str_z(spath));
+}
+
+/// @brief Check if path is a directory
+/// @param spath vt_str_t path or directory
+/// @return true if is directory
+static bool cync_tools_filter_is_file(void *spath) {
+    return vt_path_is_file(vt_str_z(spath));
 }
 
 
