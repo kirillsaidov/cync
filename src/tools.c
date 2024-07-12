@@ -97,7 +97,8 @@ void cync_tools_create_dirtree(const char *const src, const char *const dst, con
     src_contents = vt_path_dir_list_recurse(src_contents, src, ignore_df);
 
     // filter for directories
-    vt_plist_t *src_dirs = cync_tools_filter_list(src_contents, cync_tools_filter_is_dir, alloctr); 
+    vt_plist_t *src_dirs = cync_tools_filter_list(src_contents, cync_tools_filter_is_dir, alloctr);
+    if (!src_dirs) return;
 
     // iterate over src directory and create dirtree in destination
     void *item = NULL;
@@ -127,7 +128,8 @@ void cync_tools_copy_update_files(const char *const src, const char *const dst, 
     src_contents = vt_path_dir_list_recurse(src_contents, src, ignore_df);
 
     // filter for files
-    vt_plist_t *src_files = cync_tools_filter_list(src_contents, cync_tools_filter_is_file, alloctr); 
+    vt_plist_t *src_files = cync_tools_filter_list(src_contents, cync_tools_filter_is_file, alloctr);
+    if (!src_files) return;
 
     // iterate over src directory and create dirtree in destination
     void *item = NULL;
@@ -173,7 +175,8 @@ void cync_tools_remove_files(const char *const src, const char *const dst, const
     dst_contents = vt_path_dir_list_recurse(dst_contents, dst, ignore_df);
 
     // filter for files
-    vt_plist_t *dst_files = cync_tools_filter_list(dst_contents, cync_tools_filter_is_file, alloctr); 
+    vt_plist_t *dst_files = cync_tools_filter_list(dst_contents, cync_tools_filter_is_file, alloctr);
+    if (!dst_files) return;
 
     // iterate over src directory and create dirtree in destination
     void *item = NULL;
@@ -207,6 +210,7 @@ void cync_tools_remove_dirtree(const char *const src, const char *const dst, con
 
     // filter for files
     vt_plist_t *dst_dirs = cync_tools_filter_list(dst_contents, cync_tools_filter_is_dir, alloctr); 
+    if (!dst_dirs) return;
 
     // iterate over src directory and create dirtree in destination
     void *item = NULL;
