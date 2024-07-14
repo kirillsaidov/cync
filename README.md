@@ -1,25 +1,26 @@
+<img src="imgs/logo.png" width="64" height="64" align="left"></img>
 # cync
 Syncing files accross directories and devices.
-
-> **NOTE:** WIP &rarr; Only `--schema=0` option works for now!
 
 <img src="imgs/screenshot.jpg" width="720">
 
 ## Usage
 ```
-cync v1.0.1 -- syncing files accross directories and devices.
--t1 --target1 path to target folder 1
--t2 --target2 path to target folder 2
- -v --verbose verbose output
- -m --move_df move dot files
- -s  --schema syncronization schema
- -h    --help This help information.
+cync v1.0.3 -- syncing files accross directories and devices.
+-s       --src source directory
+-d       --dst destination directory
+-v   --verbose verbose output
+-i --ignore_df ignore dot files
+-l   --low_mem use less memory
+-m      --mode syncronization mode
+-h      --help This help information.
 OPTIONS:
-        --schema=0  master-slave syncronization (default)
-        --schema=1  sync both targets, but don't delete items
-        --schema=2  sync both targets completely
+        --mode=0  ensure the destination folder is a strict copy of the source specified (default)
+        --mode=1  synchronize both targets, but do not remove files automatically
+        --mode=2  synchronize both targets completely
+        --mode=3  synchronize both targets over the network in --mode=2
 EXAMPLE:
-        cync --target1 ~/disk1 --target2 ~/disk2 --schema 0 --verbose
+        cync --src ~/disk1 --dst ~/disk2 --mode 0 --verbose
 ```
 
 ## Installation

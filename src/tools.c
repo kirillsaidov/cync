@@ -1,4 +1,5 @@
 #include "tools.h"
+#include <utime.h>
 
 static bool cync_tools_filter_is_dir(void *spath);
 static bool cync_tools_filter_is_file(void *spath);
@@ -49,7 +50,7 @@ bool cync_tools_copy_file(const char *const src, const char *const dst, const bo
         char *buffer = VT_CALLOC(buffer_size);
         while ((bytesRead = fread(buffer, 1, buffer_size, src_file)) > 0) {
             if (fwrite(buffer, 1, bytesRead, dst_file) != bytesRead) {
-                cync_log("Error writing to destination file!");
+                cync_log_ln("Error writing to destination file!");
                 success = false;
                 break;
             }
@@ -58,7 +59,7 @@ bool cync_tools_copy_file(const char *const src, const char *const dst, const bo
 
         // check for read error
         if (ferror(src_file)) {
-            cync_log("Error reading from source file!");
+            cync_log_ln("Error reading from source file!");
             success = false;
         }
     }
@@ -66,6 +67,27 @@ bool cync_tools_copy_file(const char *const src, const char *const dst, const bo
     // close the files
     fclose(src_file);
     fclose(dst_file);
+
+    // get source file attributes
+    struct stat src_stat;
+    #if defined(_WIN32) || defined(_WIN64)
+        if (!success || _stat(src, &src_stat) != 0) success = false;
+    #else
+        if (!success || stat(src, &src_stat) != 0) success = false;
+    #endif 
+
+    // set file ownership of the destination file
+    if (!success || chown(dst, src_stat.st_uid, src_stat.st_gid) != 0) {
+        cync_log_ln("Failed setting file permissions!");
+        success = false;
+    }
+
+    // set access and modification times
+    struct utimbuf dst_utime_buf = { .actime = src_stat.st_atime, .modtime = src_stat.st_mtime };
+    if (utime(dst, &dst_utime_buf) != 0) {
+        cync_log_ln("Failed to set access and modification times");
+        exit(EXIT_FAILURE);
+    }
 
     return success;
 }
@@ -154,9 +176,10 @@ void cync_tools_copy_update_files(const char *const src, const char *const dst, 
             // get modification dates
             const time_t src_mtime = cync_tools_get_filetime_modified(vt_str_z(src_file));
             const time_t dst_mtime = cync_tools_get_filetime_modified(vt_str_z(dst_file));
+            const time_t timedelta = (time_t)difftime(src_mtime, dst_mtime);
 
             // check if we need to update the file
-            if (src_mtime > dst_mtime) {
+            if (timedelta > 10) { // 1 seconds = 10 (in value)
                 const bool ret = cync_tools_copy_file(vt_str_z(src_file), vt_str_z(dst_file), low_mem);
                 if (verbose) cync_log_ln("UPDATE(%s) <%s>", ret ? "OK" : "ER", vt_str_z(dst_file));
             }

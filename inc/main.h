@@ -13,8 +13,8 @@
 #define CYNC_PROJECT_HELP_FOOTER "OPTIONS:\n\
 \t--mode=0  ensure the destination folder is a strict copy of the source specified (default)\n\
 \t--mode=1  synchronize both targets, but do not remove files automatically\n\
-\t--mode=2  synchronize both targets completely (fully automatic)\n\
-\t--mode=3  synchronize both targets over the network in auto mode\n\
+\t--mode=2  synchronize both targets completely\n\
+\t--mode=3  synchronize both targets over the network in --mode=2\n\
 EXAMPLE:\n\tcync --src ~/disk1 --dst ~/disk2 --mode 0 --verbose\
 "
 

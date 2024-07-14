@@ -83,7 +83,9 @@ int main(const int argc, const char *argv[]) {
         case CYNC_MODE_TARGET: 
             cync_mode_target(opt_src, opt_dst, opt_ignore_df, opt_low_mem, opt_verbose);
             break;
-        case CYNC_MODE_DUAL: 
+        case CYNC_MODE_DUAL:
+            cync_mode_dual(opt_src, opt_dst, opt_ignore_df, opt_low_mem, opt_verbose);
+            break; 
         case CYNC_MODE_AUTO:
         case CYNC_MODE_NET:
             cync_log_ln("Feature unimplemented!");
