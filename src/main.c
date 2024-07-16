@@ -35,7 +35,7 @@ int main(const int argc, const char *argv[]) {
     const size_t optc = sizeof(optv)/sizeof(vt_argopt_t);
 
     // parse args and opts
-    const int8_t parse_status = vt_argopt_parse(argc, argv, optc, optv, NULL);
+    const int8_t parse_status = vt_argopt_parse(argc, argv, optc, optv, alloctr);
     if (parse_status < 0) {
         cync_log_ln("See '-h' for more information!");
         goto cleanup;
@@ -95,8 +95,6 @@ int main(const int argc, const char *argv[]) {
     if (opt_verbose) cync_log_ln("All files up-to-date.");
 
 cleanup:
-    VT_FREE(opt_src);
-    VT_FREE(opt_dst);
     vt_mallocator_destroy(alloctr);
 
     return 0;
